@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 
@@ -9,10 +9,16 @@ const noto = Noto_Sans_KR({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
-  title: "재무 데이터 검색·시각화·AI 분석",
+  title: "003 Finance — DART · 시각화 · AI",
   description:
-    "OpenDART 단일회사 주요계정과 Gemini 기반 쉬운 재무 해설",
+    "OpenDART 단일회사 주요계정과 Gemini 기반 재무 인사이트",
 };
 
 export default function RootLayout({
@@ -27,7 +33,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className="min-h-full flex flex-col bg-zinc-50 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50"
+        className="min-h-full flex flex-col bg-kf-bg font-sans text-kf-text"
         suppressHydrationWarning
       >
         {children}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import {
   Area,
   AreaChart,
@@ -50,16 +51,17 @@ export const CHART_VIEW_OPTIONS: {
   { value: "donut", label: "도넛 (당기 비중)", hint: "파이와 동일, 중앙 여백" },
 ];
 
+/** Koyfin-style: teal primary, cool neutrals, restrained accents */
 const PIE_COLORS = [
-  "#2563eb",
-  "#7c3aed",
-  "#db2777",
-  "#ea580c",
-  "#ca8a04",
-  "#16a34a",
-  "#0891b2",
-  "#4f46e5",
-  "#64748b",
+  "#00d4aa",
+  "#3d8bfd",
+  "#7c9cb8",
+  "#00a8e8",
+  "#5ad8a6",
+  "#9b87f5",
+  "#c9a227",
+  "#5a6578",
+  "#2d8a7a",
 ];
 
 function pieSlicesFromRows(rows: ChartRow[], maxSlices = 8) {
@@ -109,13 +111,18 @@ function composedData(rows: ChartRow[]) {
 }
 
 const tooltipStyle = {
-  borderRadius: 8,
-  border: "1px solid #e4e4e7",
+  borderRadius: 6,
+  border: "1px solid #2f3a4d",
+  backgroundColor: "#141a24",
+  color: "#eceff4",
   fontSize: 12,
   maxWidth: 320,
   whiteSpace: "normal" as const,
   wordBreak: "keep-all" as const,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
 };
+
+const legendStyle = { color: "#8b939e", fontSize: 11, paddingTop: 6 };
 
 /** 가로 막대 Y축: 한글 기준 글자당 약 11px + 여유 */
 function categoryAxisWidthForNames(rows: ChartRow[]): number {
@@ -146,7 +153,12 @@ type Props = {
   view: FinanceChartView;
 };
 
+const scrollXClass =
+  "touch-pan-x overscroll-x-contain [-webkit-overflow-scrolling:touch]";
+
 export function FinanceCharts({ data, view }: Props) {
+  const isNarrow = useMediaQuery("(max-width: 639px)");
+
   const pieData = useMemo(() => pieSlicesFromRows(data), [data]);
   const lineData = useMemo(() => lineFriendlyData(data), [data]);
   const compData = useMemo(() => composedData(data), [data]);
@@ -154,37 +166,50 @@ export function FinanceCharts({ data, view }: Props) {
   const yCategoryW = useMemo(() => categoryAxisWidthForNames(data), [data]);
   const rotatedBottom = useMemo(() => bottomSpaceForRotatedNames(data), [data]);
 
+  const yCategoryWDisplay = isNarrow
+    ? Math.min(yCategoryW, 120)
+    : yCategoryW;
+  const nameTickMax = isNarrow ? 10 : 14;
+  const hbarNameMax = isNarrow ? 12 : 28;
+
   if (data.length === 0) return null;
 
-  const h = Math.min(720, Math.max(280, data.length * 36 + 100));
-  const vBarHeight = Math.min(640, Math.max(360, 160 + data.length * 32));
+  const rowH = isNarrow ? 32 : 36;
+  const h = Math.min(720, Math.max(260, data.length * rowH + 88));
+  const vBarHeight = Math.min(640, Math.max(320, 140 + data.length * (isNarrow ? 28 : 32)));
 
   if (view === "pie" || view === "donut") {
     if (pieData.length === 0) {
       return (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-kf-muted">
           파이·도넛 차트를 그리려면 당기 금액이 0보다 큰 계정이 필요합니다.
         </p>
       );
     }
-    const inner = view === "donut" ? "45%" : 0;
+    const inner = view === "donut" ? (isNarrow ? "35%" : "45%") : 0;
     return (
-      <div className="w-full rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-1 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-          {view === "donut" ? "도넛" : "파이"} — 당기 금액 비중 (상위 계정)
+      <div className="w-full min-w-0 max-w-full rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+        <h3 className="mb-1 text-sm font-semibold text-kf-text">
+          {view === "donut" ? "도넛" : "파이"} — 당기 비중
         </h3>
-        <p className="mb-3 text-xs text-zinc-500">
-          표시 금액은 절댓값 기준이며, 툴팁에 실제 부호를 표시합니다.
+        <p className="mb-3 text-xs text-kf-dim">
+          절댓값 기준 · 툴팁에 부호 표시
         </p>
-        <ResponsiveContainer width="100%" height={420}>
-          <PieChart margin={{ top: 12, right: 8, bottom: 12, left: 8 }}>
+        <ResponsiveContainer width="100%" height={isNarrow ? 500 : 420}>
+          <PieChart
+            margin={
+              isNarrow
+                ? { top: 4, right: 4, left: 4, bottom: 8 }
+                : { top: 12, right: 8, bottom: 12, left: 8 }
+            }
+          >
             <Pie
               data={pieData}
               dataKey="value"
               nameKey="name"
-              cx="38%"
-              cy="50%"
-              outerRadius={118}
+              cx="50%"
+              cy={isNarrow ? "34%" : "50%"}
+              outerRadius={isNarrow ? 92 : 118}
               innerRadius={inner}
               paddingAngle={1}
               label={false}
@@ -193,8 +218,7 @@ export function FinanceCharts({ data, view }: Props) {
                 <Cell
                   key={i}
                   fill={PIE_COLORS[i % PIE_COLORS.length]}
-                  stroke="var(--background, #fff)"
-                  className="dark:stroke-zinc-950"
+                  stroke="#0a0d12"
                 />
               ))}
             </Pie>
@@ -212,17 +236,30 @@ export function FinanceCharts({ data, view }: Props) {
               contentStyle={tooltipStyle}
             />
             <Legend
-              layout="vertical"
-              align="right"
-              verticalAlign="middle"
-              wrapperStyle={{
-                maxHeight: 380,
-                overflowY: "auto",
-                width: "52%",
-                paddingLeft: 8,
-                fontSize: 11,
-                lineHeight: 1.35,
-              }}
+              layout={isNarrow ? "horizontal" : "vertical"}
+              align={isNarrow ? "center" : "right"}
+              verticalAlign={isNarrow ? "bottom" : "middle"}
+              wrapperStyle={
+                isNarrow
+                  ? {
+                      width: "100%",
+                      paddingTop: 4,
+                      fontSize: 10,
+                      lineHeight: 1.35,
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      color: "#8b939e",
+                    }
+                  : {
+                      maxHeight: 380,
+                      overflowY: "auto",
+                      width: "52%",
+                      paddingLeft: 8,
+                      fontSize: 11,
+                      lineHeight: 1.35,
+                      color: "#8b939e",
+                    }
+              }
             />
           </PieChart>
         </ResponsiveContainer>
@@ -232,11 +269,11 @@ export function FinanceCharts({ data, view }: Props) {
 
   if (view === "vbar") {
     return (
-      <div className="w-full rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+      <div className="w-full min-w-0 max-w-full rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+        <h3 className="mb-3 text-sm font-semibold text-kf-text">
           세로 막대 — 계정별 당기·전기
         </h3>
-        <div className="w-full overflow-x-auto pb-2">
+        <div className={`w-full overflow-x-auto pb-2 ${scrollXClass}`}>
           <div style={{ minWidth: Math.min(1200, 420 + data.length * 36) }}>
             <ResponsiveContainer width="100%" height={vBarHeight}>
               <BarChart
@@ -248,7 +285,7 @@ export function FinanceCharts({ data, view }: Props) {
                   bottom: rotatedBottom.marginBottom,
                 }}
               >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-800" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-kf-border/90" />
             <XAxis
               dataKey="name"
               angle={-38}
@@ -256,21 +293,21 @@ export function FinanceCharts({ data, view }: Props) {
               height={rotatedBottom.xAxisHeight}
               interval={0}
               tick={{ fontSize: 10 }}
-              tickFormatter={(v) => shortAxisName(String(v), 14)}
-              className="fill-zinc-600"
+              tickFormatter={(v) => shortAxisName(String(v), nameTickMax)}
+              className="fill-kf-muted"
             />
             <YAxis
-              width={72}
+              width={isNarrow ? 56 : 72}
               tickFormatter={(v) => formatWonCompact(Number(v))}
-              className="text-xs fill-zinc-500"
+              className="text-xs fill-kf-dim"
             />
             <Tooltip
               formatter={(value) => formatWonFull(Number(value ?? 0))}
               contentStyle={tooltipStyle}
             />
-            <Legend />
-            <Bar dataKey="당기" fill="#2563eb" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="전기" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+            <Legend wrapperStyle={legendStyle} />
+            <Bar dataKey="당기" fill="#00d4aa" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="전기" fill="#5a6578" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -281,11 +318,11 @@ export function FinanceCharts({ data, view }: Props) {
 
   if (view === "area") {
     return (
-      <div className="w-full rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+      <div className="w-full min-w-0 max-w-full rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+        <h3 className="mb-3 text-sm font-semibold text-kf-text">
           면적 차트 — 당기·전기
         </h3>
-        <div className="w-full overflow-x-auto pb-2">
+        <div className={`w-full overflow-x-auto pb-2 ${scrollXClass}`}>
           <div style={{ minWidth: Math.min(1200, 420 + data.length * 36) }}>
             <ResponsiveContainer width="100%" height={vBarHeight}>
               <AreaChart
@@ -297,7 +334,7 @@ export function FinanceCharts({ data, view }: Props) {
                   bottom: rotatedBottom.marginBottom,
                 }}
               >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-800" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-kf-border/90" />
             <XAxis
               dataKey="name"
               angle={-38}
@@ -305,30 +342,30 @@ export function FinanceCharts({ data, view }: Props) {
               height={rotatedBottom.xAxisHeight}
               interval={0}
               tick={{ fontSize: 10 }}
-              tickFormatter={(v) => shortAxisName(String(v), 14)}
+              tickFormatter={(v) => shortAxisName(String(v), nameTickMax)}
             />
             <YAxis
-              width={72}
+              width={isNarrow ? 56 : 72}
               tickFormatter={(v) => formatWonCompact(Number(v))}
             />
             <Tooltip
               formatter={(value) => formatWonFull(Number(value ?? 0))}
               contentStyle={tooltipStyle}
             />
-            <Legend />
+            <Legend wrapperStyle={legendStyle} />
             <Area
               type="monotone"
               dataKey="당기"
-              stroke="#1d4ed8"
-              fill="#3b82f6"
-              fillOpacity={0.35}
+              stroke="#00a882"
+              fill="#00d4aa"
+              fillOpacity={0.28}
             />
             <Area
               type="monotone"
               dataKey="전기"
-              stroke="#64748b"
-              fill="#94a3b8"
-              fillOpacity={0.35}
+              stroke="#5a6578"
+              fill="#7c9cb8"
+              fillOpacity={0.22}
             />
               </AreaChart>
             </ResponsiveContainer>
@@ -340,28 +377,36 @@ export function FinanceCharts({ data, view }: Props) {
 
   if (view === "line") {
     return (
-      <div className="w-full rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+      <div className="w-full min-w-0 max-w-full rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+        <h3 className="mb-3 text-sm font-semibold text-kf-text">
           꺾은선 — 계정 순서대로 당기·전기
         </h3>
-        <ResponsiveContainer width="100%" height={vBarHeight}>
-          <LineChart
-            data={lineData}
-            margin={{ top: 16, right: 20, left: 20, bottom: 36 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-800" />
+        <div className={`w-full min-w-0 ${scrollXClass} overflow-x-auto`}>
+          <ResponsiveContainer width="100%" height={isNarrow ? Math.min(vBarHeight, 380) : vBarHeight} minWidth={280}>
+            <LineChart
+              data={lineData}
+              margin={{
+                top: 16,
+                right: isNarrow ? 12 : 20,
+                left: isNarrow ? 8 : 20,
+                bottom: isNarrow ? 44 : 36,
+              }}
+            >
+            <CartesianGrid strokeDasharray="3 3" className="stroke-kf-border/90" />
             <XAxis
               dataKey="idx"
               tickFormatter={(v) => `#${v}`}
               label={{
-                value: "계정 순서(정렬) — 툴팁에 전체 계정명",
+                value: isNarrow
+                  ? "순서(툴팁에 계정명)"
+                  : "계정 순서(정렬) — 툴팁에 전체 계정명",
                 position: "insideBottom",
                 offset: -2,
-                style: { fontSize: 11, fill: "#71717a" },
+                style: { fontSize: isNarrow ? 9 : 11, fill: "#8b939e" },
               }}
             />
             <YAxis
-              width={68}
+              width={isNarrow ? 52 : 68}
               tickFormatter={(v) => formatWonCompact(Number(v))}
             />
             <Tooltip
@@ -372,55 +417,56 @@ export function FinanceCharts({ data, view }: Props) {
               }}
               contentStyle={tooltipStyle}
             />
-            <Legend />
-            <Line type="monotone" dataKey="당기" stroke="#2563eb" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="전기" stroke="#94a3b8" strokeWidth={2} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
+            <Legend wrapperStyle={legendStyle} />
+            <Line type="monotone" dataKey="당기" stroke="#00d4aa" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="전기" stroke="#7c9cb8" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     );
   }
 
   if (view === "composed") {
     return (
-      <div className="w-full rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-        <h3 className="mb-1 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+      <div className="w-full min-w-0 max-w-full rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+        <h3 className="mb-1 text-sm font-semibold text-kf-text">
           막대(당기) + 선(전기 대비 증감률 %)
         </h3>
-        <p className="mb-3 text-xs text-zinc-500">
+        <p className="mb-3 text-xs text-kf-dim">
           전기가 0이면 증감률은 0으로 표시됩니다.
         </p>
-        <div className="w-full overflow-x-auto pb-2">
+        <div className={`w-full overflow-x-auto pb-2 ${scrollXClass}`}>
           <div style={{ minWidth: Math.min(1200, 420 + data.length * 36) }}>
             <ResponsiveContainer width="100%" height={vBarHeight}>
               <ComposedChart
                 data={compData}
                 margin={{
                   top: 16,
-                  right: 36,
-                  left: 12,
+                  right: isNarrow ? 28 : 36,
+                  left: isNarrow ? 4 : 12,
                   bottom: rotatedBottom.marginBottom,
                 }}
               >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-800" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-kf-border/90" />
             <XAxis
               dataKey="name"
               angle={-38}
               textAnchor="end"
               height={rotatedBottom.xAxisHeight}
               interval={0}
-              tick={{ fontSize: 10 }}
-              tickFormatter={(v) => shortAxisName(String(v), 14)}
+              tick={{ fontSize: isNarrow ? 9 : 10 }}
+              tickFormatter={(v) => shortAxisName(String(v), nameTickMax)}
             />
             <YAxis
               yAxisId="left"
-              width={72}
+              width={isNarrow ? 52 : 72}
               tickFormatter={(v) => formatWonCompact(Number(v))}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              width={48}
+              width={isNarrow ? 36 : 48}
               tickFormatter={(v) => `${v}%`}
             />
             <Tooltip
@@ -431,13 +477,13 @@ export function FinanceCharts({ data, view }: Props) {
                 return [formatWonFull(Number(value ?? 0)), String(name ?? "")];
               }}
             />
-            <Legend />
-            <Bar yAxisId="left" dataKey="당기" fill="#2563eb" radius={[4, 4, 0, 0]} />
+            <Legend wrapperStyle={legendStyle} />
+            <Bar yAxisId="left" dataKey="당기" fill="#00d4aa" radius={[4, 4, 0, 0]} />
             <Line
               yAxisId="right"
               type="monotone"
               dataKey="증감률"
-              stroke="#f97316"
+              stroke="#ffb020"
               strokeWidth={2}
               dot={{ r: 2 }}
             />
@@ -451,40 +497,45 @@ export function FinanceCharts({ data, view }: Props) {
 
   /* hbar — default */
   return (
-    <div className="w-full rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-      <h3 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+    <div className="w-full min-w-0 max-w-full rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+      <h3 className="mb-3 text-sm font-semibold text-kf-text">
         가로 막대 — 당기 vs 전기
       </h3>
-      <div className="w-full overflow-x-auto pb-2">
-        <div style={{ minWidth: Math.min(1100, 320 + yCategoryW + data.length * 8) }}>
-          <ResponsiveContainer width="100%" height={h}>
+      <div className={`w-full overflow-x-auto pb-2 ${scrollXClass}`}>
+        <div style={{ minWidth: Math.min(1100, 280 + yCategoryWDisplay + data.length * 8) }}>
+          <ResponsiveContainer width="100%" height={h} minWidth={260}>
         <BarChart
           layout="vertical"
           data={data}
-          margin={{ top: 16, right: 28, left: 12, bottom: 16 }}
+          margin={{
+            top: 16,
+            right: isNarrow ? 20 : 28,
+            left: isNarrow ? 4 : 12,
+            bottom: 16,
+          }}
         >
-          <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-zinc-800" />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-kf-border/90" />
           <XAxis
             type="number"
             tickFormatter={(v) => formatWonCompact(Number(v))}
-            className="text-xs fill-zinc-500"
+            className="text-xs fill-kf-dim"
           />
           <YAxis
             type="category"
             dataKey="name"
-            width={yCategoryW}
-            tick={{ fontSize: 10 }}
-            tickFormatter={(v) => shortAxisName(String(v), 28)}
-            className="text-xs fill-zinc-600"
+            width={yCategoryWDisplay}
+            tick={{ fontSize: isNarrow ? 9 : 10 }}
+            tickFormatter={(v) => shortAxisName(String(v), hbarNameMax)}
+            className="text-xs fill-kf-muted"
           />
           <Tooltip
             formatter={(value) => formatWonFull(Number(value ?? 0))}
             labelFormatter={(label) => String(label)}
             contentStyle={tooltipStyle}
           />
-          <Legend />
-          <Bar dataKey="당기" fill="#2563eb" name="당기" radius={[0, 4, 4, 0]} />
-          <Bar dataKey="전기" fill="#94a3b8" name="전기" radius={[0, 4, 4, 0]} />
+          <Legend wrapperStyle={legendStyle} />
+          <Bar dataKey="당기" fill="#00d4aa" name="당기" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="전기" fill="#5a6578" name="전기" radius={[0, 4, 4, 0]} />
         </BarChart>
           </ResponsiveContainer>
         </div>

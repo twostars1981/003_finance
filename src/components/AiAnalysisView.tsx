@@ -19,41 +19,39 @@ export function splitAnalysisContent(full: string): {
 
 const markdownComponents: Components = {
   p: ({ children }) => (
-    <p className="mb-3 text-sm leading-relaxed text-zinc-800 last:mb-0 dark:text-zinc-200">
+    <p className="mb-3 text-sm leading-relaxed text-kf-text/95 last:mb-0">
       {children}
     </p>
   ),
   strong: ({ children }) => (
-    <strong className="font-semibold text-zinc-900 dark:text-zinc-50">
-      {children}
-    </strong>
+    <strong className="font-semibold text-kf-text">{children}</strong>
   ),
   em: ({ children }) => (
-    <em className="italic text-zinc-700 dark:text-zinc-300">{children}</em>
+    <em className="italic text-kf-muted">{children}</em>
   ),
   ul: ({ children }) => (
-    <ul className="mb-3 list-disc space-y-1 pl-5 text-sm text-zinc-800 dark:text-zinc-200">
+    <ul className="mb-3 list-disc space-y-1 pl-5 text-sm text-kf-text/95">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm text-zinc-800 dark:text-zinc-200">
+    <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm text-kf-text/95">
       {children}
     </ol>
   ),
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   h1: ({ children }) => (
-    <h3 className="mb-2 mt-5 border-b border-zinc-200 pb-1 text-base font-semibold text-zinc-900 first:mt-0 dark:border-zinc-700 dark:text-zinc-50">
+    <h3 className="mb-2 mt-5 border-b border-kf-border pb-1 text-base font-semibold text-kf-text first:mt-0">
       {children}
     </h3>
   ),
   h2: ({ children }) => (
-    <h3 className="mb-2 mt-5 text-base font-semibold text-zinc-900 first:mt-0 dark:text-zinc-50">
+    <h3 className="mb-2 mt-5 text-base font-semibold text-kf-text first:mt-0">
       {children}
     </h3>
   ),
   h3: ({ children }) => (
-    <h4 className="mb-2 mt-4 text-sm font-semibold text-zinc-900 first:mt-0 dark:text-zinc-50">
+    <h4 className="mb-2 mt-4 text-sm font-semibold text-kf-text first:mt-0">
       {children}
     </h4>
   ),
@@ -62,7 +60,7 @@ const markdownComponents: Components = {
     if (inline) {
       return (
         <code
-          className="rounded bg-zinc-200/80 px-1.5 py-0.5 font-mono text-[0.85em] text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+          className="rounded bg-kf-elevated px-1.5 py-0.5 font-mono text-[0.85em] text-kf-accent"
           {...props}
         >
           {children}
@@ -70,37 +68,32 @@ const markdownComponents: Components = {
       );
     }
     return (
-      <code
-        className="block font-mono text-xs text-zinc-100"
-        {...props}
-      >
+      <code className="block font-mono text-xs text-kf-text" {...props}>
         {children}
       </code>
     );
   },
   pre: ({ children }) => (
-    <pre className="mb-3 overflow-x-auto rounded-lg bg-zinc-900 p-3 text-zinc-100 dark:bg-zinc-950">
+    <pre className="mb-3 overflow-x-auto rounded-md border border-kf-border bg-kf-bg p-3 text-kf-text">
       {children}
     </pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="mb-3 border-l-4 border-indigo-300 pl-3 text-sm text-zinc-600 italic dark:border-indigo-600 dark:text-zinc-400">
+    <blockquote className="mb-3 border-l-[3px] border-kf-accent/50 pl-3 text-sm italic text-kf-muted">
       {children}
     </blockquote>
   ),
   a: ({ href, children }) => (
     <a
       href={href}
-      className="font-medium text-indigo-600 underline decoration-indigo-400/60 underline-offset-2 hover:text-indigo-500 dark:text-indigo-400"
+      className="font-medium text-kf-link underline decoration-kf-border-strong/50 underline-offset-2 hover:text-kf-accent"
       target="_blank"
       rel="noopener noreferrer"
     >
       {children}
     </a>
   ),
-  hr: () => (
-    <hr className="my-4 border-zinc-200 dark:border-zinc-700" />
-  ),
+  hr: () => <hr className="my-4 border-kf-border" />,
 };
 
 type Props = {
@@ -111,13 +104,14 @@ export function AiAnalysisView({ content }: Props) {
   const { markdown, modelLabel } = splitAnalysisContent(content);
 
   return (
-    <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/80">
-      <div className="ai-analysis-md">
+    <div className="mt-4 min-w-0 max-w-full overflow-hidden rounded-md border border-kf-border bg-kf-bg p-3 sm:p-4">
+      <div className="ai-analysis-md break-words">
         <ReactMarkdown components={markdownComponents}>{markdown}</ReactMarkdown>
       </div>
       {modelLabel ? (
-        <p className="mt-4 border-t border-zinc-200 pt-3 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          사용 모델: <span className="font-mono text-zinc-700 dark:text-zinc-300">{modelLabel}</span>
+        <p className="mt-4 border-t border-kf-border pt-3 text-xs text-kf-dim">
+          사용 모델:{" "}
+          <span className="font-mono text-kf-muted">{modelLabel}</span>
         </p>
       ) : null}
     </div>

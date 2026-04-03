@@ -231,265 +231,306 @@ export function FinanceDashboard() {
   }, [selected, filteredFnltt, bsnsYear, reprtCode, fsDiv, sjDiv]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-          재무 데이터 검색·시각화·AI 분석
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          OpenDART 고유번호로 회사를 고른 뒤 단일회사 주요계정을 조회합니다. 모든
-          수치는 공시 API 실시간 응답입니다.
-        </p>
-      </header>
-
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          1. 회사 검색
-        </h2>
-        {corpLoadError && (
-          <p className="mb-2 text-sm text-red-600 dark:text-red-400">
-            {corpLoadError}
-          </p>
-        )}
-        <label className="block text-xs font-medium text-zinc-500">
-          회사명 · 영문명 · 종목코드
-        </label>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="예: 삼성전자, SAMSUNG, 005930"
-          className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-zinc-400 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-900"
-        />
-        <p className="mt-2 text-xs text-zinc-500">
-          즐겨찾기는 이 브라우저에만 저장됩니다.
-        </p>
-
-        {favorites.length > 0 && (
-          <div className="mt-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              즐겨찾기
-            </h3>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {favorites.map((c) => (
-                <div
-                  key={c.corp_code}
-                  className="flex items-center gap-0.5 rounded-full border border-amber-200 bg-amber-50 pl-3 pr-1 text-sm dark:border-amber-900/60 dark:bg-amber-950/40"
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelected(c);
-                      setQuery(c.corp_name);
-                    }}
-                    className="py-1.5 pr-1 font-medium text-zinc-900 hover:underline dark:text-zinc-100"
-                  >
-                    {c.corp_name}
-                    {c.stock_code ? (
-                      <span className="ml-1 font-normal text-zinc-500">
-                        ({c.stock_code})
-                      </span>
-                    ) : null}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleFavorite(c)}
-                    className="rounded-full p-1.5 text-zinc-500 hover:bg-amber-200/80 hover:text-zinc-800 dark:hover:bg-amber-900/50 dark:hover:text-zinc-200"
-                    aria-label={`${c.corp_name} 즐겨찾기 해제`}
-                    title="즐겨찾기 해제"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+    <div className="min-h-full min-w-0">
+      <header className="sticky top-0 z-20 border-b border-kf-border bg-kf-surface/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-3 sm:px-6">
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md font-mono text-sm font-bold text-kf-bg"
+            style={{ background: "linear-gradient(135deg, #00d4aa 0%, #00a882 100%)" }}
+          >
+            03
           </div>
-        )}
-
-        {debouncedQuery.trim() && matches.length > 0 && (
-          <ul className="mt-2 max-h-56 overflow-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-            {matches.map((c) => {
-              const isFav = favoriteCodes.has(c.corp_code);
-              return (
-                <li
-                  key={c.corp_code}
-                  className="flex border-b border-zinc-100 last:border-b-0 dark:border-zinc-800/80"
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelected(c);
-                      setQuery(c.corp_name);
-                    }}
-                    className="flex min-w-0 flex-1 flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
-                  >
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {c.corp_name}
-                    </span>
-                    <span className="text-xs text-zinc-500">
-                      고유번호 {c.corp_code}
-                      {c.stock_code ? ` · 종목 ${c.stock_code}` : ""}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toggleFavorite(c);
-                    }}
-                    className={`shrink-0 px-3 text-lg leading-none transition-colors ${
-                      isFav
-                        ? "text-amber-500 hover:text-amber-600"
-                        : "text-zinc-300 hover:text-amber-400"
-                    }`}
-                    aria-label={
-                      isFav
-                        ? `${c.corp_name} 즐겨찾기 해제`
-                        : `${c.corp_name} 즐겨찾기 추가`
-                    }
-                    title={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                  >
-                    {isFav ? "★" : "☆"}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {debouncedQuery.trim() && matches.length === 0 && corporates && (
-          <p className="mt-2 text-sm text-zinc-500">검색 결과가 없습니다.</p>
-        )}
-        {selected && (
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-zinc-700 dark:text-zinc-300">
-              선택됨:{" "}
-              <strong>{selected.corp_name}</strong> (고유번호{" "}
-              <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">
-                {selected.corp_code}
-              </code>
-              )
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-kf-muted">
+              Research terminal
             </p>
-            <button
-              type="button"
-              onClick={() => toggleFavorite(selected)}
-              className={`shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium ${
-                favoriteCodes.has(selected.corp_code)
-                  ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-100"
-                  : "border-zinc-300 bg-white text-zinc-700 hover:border-amber-300 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200"
-              }`}
-            >
-              {favoriteCodes.has(selected.corp_code)
-                ? "★ 즐겨찾기 해제"
-                : "☆ 즐겨찾기 추가"}
-            </button>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          2. 재무 조회 (단일회사 주요계정)
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <label className="text-xs font-medium text-zinc-500">사업연도</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={4}
-              value={bsnsYear}
-              onChange={(e) =>
-                setBsnsYear(e.target.value.replace(/\D/g, "").slice(0, 4))
-              }
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-zinc-500">보고서</label>
-            <select
-              value={reprtCode}
-              onChange={(e) => setReprtCode(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-              {REPRT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-zinc-500">
-              개별/연결
-            </label>
-            <select
-              value={fsDiv}
-              onChange={(e) => setFsDiv(e.target.value as "CFS" | "OFS")}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-              <option value="CFS">연결 (CFS)</option>
-              <option value="OFS">개별 (OFS)</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-medium text-zinc-500">표 구분</label>
-            <select
-              value={sjDiv}
-              onChange={(e) => setSjDiv(e.target.value as "BS" | "IS")}
-              className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-            >
-              <option value="BS">재무상태표 (BS)</option>
-              <option value="IS">손익계산서 (IS)</option>
-            </select>
+            <h1 className="truncate text-sm font-semibold tracking-tight text-kf-text sm:text-base">
+              003 Finance
+            </h1>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void fetchFnltt()}
-          disabled={!selected || fnlttLoading}
-          className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          {fnlttLoading ? "조회 중…" : "OpenDART에서 조회"}
-        </button>
-        {fnlttError && (
-          <p className="mt-3 text-sm text-red-600 dark:text-red-400">
-            {fnlttError}
+      </header>
+
+      <main className="mx-auto flex w-full min-w-0 max-w-6xl flex-col gap-5 px-3 py-5 sm:gap-6 sm:px-6 sm:py-8">
+        <div className="space-y-1 border-b border-kf-border pb-5">
+          <h2 className="text-lg font-semibold tracking-tight text-kf-text sm:text-xl">
+            재무 데이터 · 시각화 · AI 인사이트
+          </h2>
+          <p className="max-w-2xl text-sm leading-relaxed text-kf-muted">
+            OpenDART 고유번호 기준 단일회사 주요계정을 조회합니다. 수치는 공시 API
+            응답이며, 차트와 표로 바로 비교할 수 있습니다.
           </p>
-        )}
-        {rceptNo && (
-          <p className="mt-3 text-sm">
-            <a
-              href={`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rceptNo}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-blue-600 underline dark:text-blue-400"
-            >
-              DART 공시 원문 보기 (접수번호 {rceptNo})
-            </a>
+        </div>
+
+        <section className="rounded-lg border border-kf-border bg-kf-surface p-4 sm:p-5">
+          <div className="mb-4 flex items-baseline justify-between gap-2 border-b border-kf-border pb-3">
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-kf-muted">
+              01 · Universe
+            </h2>
+            <span className="font-mono text-[10px] text-kf-dim">Search</span>
+          </div>
+          {corpLoadError && (
+            <p className="mb-2 text-sm text-kf-danger">{corpLoadError}</p>
+          )}
+          <label className="block text-[11px] font-medium uppercase tracking-wide text-kf-muted">
+            회사명 · 영문명 · 종목코드
+          </label>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="예: 삼성전자, SAMSUNG, 005930"
+            className="mt-1.5 w-full rounded-md border border-kf-border bg-kf-bg px-3 py-2.5 text-base text-kf-text outline-none placeholder:text-kf-dim focus:border-kf-accent focus:ring-1 focus:ring-kf-accent/35 sm:text-sm"
+          />
+          <p className="mt-2 text-xs text-kf-dim">
+            즐겨찾기는 이 브라우저(localStorage)에만 저장됩니다.
           </p>
-        )}
-      </section>
+
+          {favorites.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-[11px] font-semibold uppercase tracking-widest text-kf-muted">
+                Watchlist
+              </h3>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {favorites.map((c) => (
+                  <div
+                    key={c.corp_code}
+                    className="flex items-center gap-0.5 rounded-md border border-kf-accent/25 bg-kf-elevated pl-2.5 pr-1 text-sm"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelected(c);
+                        setQuery(c.corp_name);
+                      }}
+                      className="py-1.5 pr-1 text-left font-medium text-kf-text hover:text-kf-accent"
+                    >
+                      {c.corp_name}
+                      {c.stock_code ? (
+                        <span className="ml-1 font-mono text-xs font-normal text-kf-muted">
+                          {c.stock_code}
+                        </span>
+                      ) : null}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleFavorite(c)}
+                      className="rounded p-1.5 text-kf-dim hover:bg-kf-border hover:text-kf-text"
+                      aria-label={`${c.corp_name} 즐겨찾기 해제`}
+                      title="즐겨찾기 해제"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {debouncedQuery.trim() && matches.length > 0 && (
+            <ul className="mt-2 max-h-56 overflow-auto rounded-md border border-kf-border bg-kf-bg">
+              {matches.map((c) => {
+                const isFav = favoriteCodes.has(c.corp_code);
+                return (
+                  <li
+                    key={c.corp_code}
+                    className="flex border-b border-kf-border last:border-b-0"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelected(c);
+                        setQuery(c.corp_name);
+                      }}
+                      className="flex min-w-0 flex-1 flex-col items-start gap-0.5 px-3 py-2.5 text-left text-sm hover:bg-kf-elevated"
+                    >
+                      <span className="font-medium text-kf-text">
+                        {c.corp_name}
+                      </span>
+                      <span className="font-mono text-xs text-kf-muted">
+                        {c.corp_code}
+                        {c.stock_code ? ` · ${c.stock_code}` : ""}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleFavorite(c);
+                      }}
+                      className={`shrink-0 px-3 text-lg leading-none transition-colors ${
+                        isFav
+                          ? "text-kf-accent"
+                          : "text-kf-dim hover:text-kf-accent"
+                      }`}
+                      aria-label={
+                        isFav
+                          ? `${c.corp_name} 즐겨찾기 해제`
+                          : `${c.corp_name} 즐겨찾기 추가`
+                      }
+                      title={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                    >
+                      {isFav ? "★" : "☆"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {debouncedQuery.trim() && matches.length === 0 && corporates && (
+            <p className="mt-2 text-sm text-kf-muted">검색 결과가 없습니다.</p>
+          )}
+          {selected && (
+            <div className="mt-4 flex flex-col gap-2 border-t border-kf-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-kf-muted">
+                선택{" "}
+                <strong className="text-kf-text">{selected.corp_name}</strong>
+                <span className="mx-1 text-kf-dim">·</span>
+                <code className="rounded bg-kf-elevated px-1.5 py-0.5 font-mono text-xs text-kf-accent">
+                  {selected.corp_code}
+                </code>
+              </p>
+              <button
+                type="button"
+                onClick={() => toggleFavorite(selected)}
+                className={`shrink-0 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                  favoriteCodes.has(selected.corp_code)
+                    ? "border-kf-accent/40 bg-kf-accent/10 text-kf-accent"
+                    : "border-kf-border bg-kf-bg text-kf-muted hover:border-kf-accent/30 hover:text-kf-text"
+                }`}
+              >
+                {favoriteCodes.has(selected.corp_code)
+                  ? "Watchlist에서 제거"
+                  : "Watchlist에 추가"}
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-lg border border-kf-border bg-kf-surface p-4 sm:p-5">
+          <div className="mb-4 flex items-baseline justify-between gap-2 border-b border-kf-border pb-3">
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-kf-muted">
+              02 · Filing pull
+            </h2>
+            <span className="font-mono text-[10px] text-kf-dim">fnlttSinglAcnt</span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-kf-muted">
+                사업연도
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={4}
+                value={bsnsYear}
+                onChange={(e) =>
+                  setBsnsYear(e.target.value.replace(/\D/g, "").slice(0, 4))
+                }
+                className="mt-1.5 w-full rounded-md border border-kf-border bg-kf-bg px-3 py-2.5 font-mono text-base text-kf-text outline-none focus:border-kf-accent focus:ring-1 focus:ring-kf-accent/35 sm:text-sm"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-kf-muted">
+                보고서
+              </label>
+              <select
+                value={reprtCode}
+                onChange={(e) => setReprtCode(e.target.value)}
+                className="mt-1.5 w-full rounded-md border border-kf-border bg-kf-bg px-3 py-2.5 text-base text-kf-text outline-none focus:border-kf-accent focus:ring-1 focus:ring-kf-accent/35 sm:text-sm"
+              >
+                {REPRT_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-kf-bg">
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-kf-muted">
+                개별/연결
+              </label>
+              <select
+                value={fsDiv}
+                onChange={(e) => setFsDiv(e.target.value as "CFS" | "OFS")}
+                className="mt-1.5 w-full rounded-md border border-kf-border bg-kf-bg px-3 py-2.5 text-base text-kf-text outline-none focus:border-kf-accent focus:ring-1 focus:ring-kf-accent/35 sm:text-sm"
+              >
+                <option value="CFS" className="bg-kf-bg">
+                  연결 (CFS)
+                </option>
+                <option value="OFS" className="bg-kf-bg">
+                  개별 (OFS)
+                </option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-kf-muted">
+                표 구분
+              </label>
+              <select
+                value={sjDiv}
+                onChange={(e) => setSjDiv(e.target.value as "BS" | "IS")}
+                className="mt-1.5 w-full rounded-md border border-kf-border bg-kf-bg px-3 py-2.5 text-base text-kf-text outline-none focus:border-kf-accent focus:ring-1 focus:ring-kf-accent/35 sm:text-sm"
+              >
+                <option value="BS" className="bg-kf-bg">
+                  재무상태표 (BS)
+                </option>
+                <option value="IS" className="bg-kf-bg">
+                  손익계산서 (IS)
+                </option>
+              </select>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => void fetchFnltt()}
+            disabled={!selected || fnlttLoading}
+            className="mt-4 min-h-11 w-full rounded-md bg-kf-accent px-4 py-2.5 text-base font-semibold text-kf-bg transition-colors hover:bg-kf-accent-hover disabled:opacity-45 sm:w-auto sm:text-sm"
+          >
+            {fnlttLoading ? "조회 중…" : "OpenDART 조회"}
+          </button>
+          {fnlttError && (
+            <p className="mt-3 text-sm text-kf-danger">{fnlttError}</p>
+          )}
+          {rceptNo && (
+            <p className="mt-3 text-sm">
+              <a
+                href={`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rceptNo}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-kf-link underline decoration-kf-border-strong/60 underline-offset-2 hover:text-kf-accent"
+              >
+                DART 원문 · 접수 {rceptNo}
+              </a>
+            </p>
+          )}
+        </section>
 
       {filteredFnltt.length > 0 && (
-        <section className="space-y-4">
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              3. 시각화
-            </h2>
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div className="flex-1">
-                <label className="text-xs font-medium text-zinc-500">
-                  차트 종류
+        <section className="space-y-5">
+          <div className="min-w-0 rounded-lg border border-kf-border bg-kf-surface p-4 sm:p-5">
+            <div className="mb-4 flex flex-col gap-3 border-b border-kf-border pb-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="text-[11px] font-semibold uppercase tracking-widest text-kf-muted">
+                  03 · Charts
+                </h2>
+                <p className="mt-1 text-xs text-kf-dim">
+                  당기·전기 비교 · Recharts
+                </p>
+              </div>
+              <div className="min-w-0 flex-1 sm:max-w-md">
+                <label className="text-[11px] font-medium uppercase tracking-wide text-kf-muted">
+                  뷰
                 </label>
                 <select
                   value={chartView}
                   onChange={(e) =>
                     setChartView(e.target.value as FinanceChartView)
                   }
-                  className="mt-1 w-full max-w-md rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                  className="mt-1 w-full rounded-md border border-kf-border bg-kf-bg px-3 py-2.5 text-base text-kf-text outline-none focus:border-kf-accent focus:ring-1 focus:ring-kf-accent/35 sm:text-sm"
                 >
                   {CHART_VIEW_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
+                    <option key={o.value} value={o.value} className="bg-kf-bg">
                       {o.label} — {o.hint}
                     </option>
                   ))}
@@ -499,64 +540,113 @@ export function FinanceDashboard() {
             <FinanceCharts data={chartData} view={chartView} />
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              계정 목록
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                    <th className="py-2 pr-4 font-medium">계정명</th>
-                    <th className="py-2 pr-4 font-medium">당기</th>
-                    <th className="py-2 font-medium">전기</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredFnltt.map((r) => (
-                    <tr
-                      key={`${r.account_nm}-${r.ord}-${r.fs_div}-${r.sj_div}`}
-                      className="border-b border-zinc-100 dark:border-zinc-900"
-                    >
-                      <td className="py-2 pr-4 align-top">{r.account_nm}</td>
-                      <td className="py-2 pr-4 align-top font-mono text-xs">
+          <div className="min-w-0 rounded-lg border border-kf-border bg-kf-surface p-4 sm:p-5">
+            <div className="mb-3 border-b border-kf-border pb-3">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-kf-muted">
+                Line items
+              </h2>
+              <p className="mt-1 text-xs text-kf-dim sm:hidden">
+                표는 가로 스크롤 · 모바일은 카드
+              </p>
+            </div>
+            <div className="hidden sm:block">
+              <div className="touch-pan-x overflow-x-auto overscroll-x-contain rounded-md border border-kf-border bg-kf-bg [-webkit-overflow-scrolling:touch]">
+                <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-kf-border bg-kf-elevated">
+                      <th className="sticky left-0 z-10 border-r border-kf-border bg-kf-elevated py-2.5 pr-4 pl-3 text-[11px] font-semibold uppercase tracking-wide text-kf-muted">
+                        계정
+                      </th>
+                      <th className="py-2.5 pr-4 text-[11px] font-semibold uppercase tracking-wide text-kf-muted">
+                        당기
+                      </th>
+                      <th className="py-2.5 pr-3 text-[11px] font-semibold uppercase tracking-wide text-kf-muted">
+                        전기
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredFnltt.map((r) => (
+                      <tr
+                        key={`${r.account_nm}-${r.ord}-${r.fs_div}-${r.sj_div}`}
+                        className="border-b border-kf-border/80 last:border-b-0"
+                      >
+                        <td className="sticky left-0 z-10 border-r border-kf-border bg-kf-bg py-2.5 pr-4 pl-3 align-top text-kf-text">
+                          {r.account_nm}
+                        </td>
+                        <td className="max-w-[11rem] py-2.5 pr-4 align-top break-all font-mono text-xs text-kf-text tabular-nums">
+                          {parseDartAmount(r.thstrm_amount) != null
+                            ? formatWonFull(parseDartAmount(r.thstrm_amount)!)
+                            : r.thstrm_amount}
+                        </td>
+                        <td className="max-w-[11rem] py-2.5 pr-3 align-top break-all font-mono text-xs text-kf-muted tabular-nums">
+                          {parseDartAmount(r.frmtrm_amount) != null
+                            ? formatWonFull(parseDartAmount(r.frmtrm_amount)!)
+                            : r.frmtrm_amount}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <ul className="space-y-2 sm:hidden">
+              {filteredFnltt.map((r) => (
+                <li
+                  key={`m-${r.account_nm}-${r.ord}-${r.fs_div}-${r.sj_div}`}
+                  className="rounded-md border border-kf-border bg-kf-bg p-3"
+                >
+                  <div className="font-medium text-kf-text">{r.account_nm}</div>
+                  <dl className="mt-2 grid grid-cols-1 gap-2 text-xs">
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-[10px] font-semibold uppercase tracking-wide text-kf-dim">
+                        당기
+                      </dt>
+                      <dd className="break-all font-mono text-kf-text tabular-nums">
                         {parseDartAmount(r.thstrm_amount) != null
                           ? formatWonFull(parseDartAmount(r.thstrm_amount)!)
                           : r.thstrm_amount}
-                      </td>
-                      <td className="py-2 align-top font-mono text-xs">
+                      </dd>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <dt className="text-[10px] font-semibold uppercase tracking-wide text-kf-dim">
+                        전기
+                      </dt>
+                      <dd className="break-all font-mono text-kf-muted tabular-nums">
                         {parseDartAmount(r.frmtrm_amount) != null
                           ? formatWonFull(parseDartAmount(r.frmtrm_amount)!)
                           : r.frmtrm_amount}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-            <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              4. AI 쉬운 해설 (Gemini)
-            </h2>
+          <div className="min-w-0 rounded-lg border border-kf-border bg-kf-surface p-4 sm:p-5">
+            <div className="mb-4 border-b border-kf-border pb-3">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-kf-muted">
+                04 · AI narrative
+              </h2>
+              <p className="mt-1 text-xs text-kf-dim">Gemini · 현재 표 기준</p>
+            </div>
             <button
               type="button"
               onClick={() => void runAnalyze()}
               disabled={analyzeLoading}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="min-h-11 w-full rounded-md border border-kf-accent/50 bg-kf-accent/10 px-4 py-2.5 text-base font-semibold text-kf-accent transition-colors hover:bg-kf-accent/20 disabled:opacity-45 sm:w-auto sm:text-sm"
             >
-              {analyzeLoading ? "분석 중…" : "AI 분석 시작"}
+              {analyzeLoading ? "분석 중…" : "AI 분석 실행"}
             </button>
             {analyzeError && (
-              <p className="mt-3 text-sm text-red-600 dark:text-red-400">
-                {analyzeError}
-              </p>
+              <p className="mt-3 text-sm text-kf-danger">{analyzeError}</p>
             )}
             {analyzeText ? <AiAnalysisView content={analyzeText} /> : null}
           </div>
         </section>
       )}
+      </main>
     </div>
   );
 }
